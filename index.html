@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Traffic Sketcher</title>
+  <meta name="theme-color" content="#0f1115" />
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <div class="toolbar">
+    <div class="title">🚗 Traffic Sketcher</div>
+    <div class="group" role="group" aria-label="modes">
+      <button id="mode-select" class="active" title="Select / Move (V)">Select</button>
+      <button id="mode-pan" title="Pan (H)">Pan</button>
+    </div>
+    <div class="group">
+      <button id="btn-undo" title="Undo (Ctrl/Cmd+Z)">↶ Undo</button>
+      <button id="btn-redo" title="Redo (Ctrl/Cmd+Shift+Z)">↷ Redo</button>
+    </div>
+    <div class="group">
+      <button id="btn-rotate" title="Rotate 90° (R)">⤾ Rotate</button>
+      <button id="btn-dup" title="Duplicate (D)">⎘ Duplicate</button>
+      <button id="btn-delete" title="Delete (Del)">🗑 Delete</button>
+    </div>
+    <div class="group">
+      <label class="btn"><input type="checkbox" id="snap" checked> Snap</label>
+      <label class="btn"><input type="checkbox" id="gridToggle" checked> Grid</label>
+      <button id="zoom-in" title="Zoom in">＋</button>
+      <button id="zoom-out" title="Zoom out">－</button>
+      <button id="zoom-reset" title="Reset zoom">⤢</button>
+    </div>
+    <div class="group">
+      <button id="btn-save" title="Save to device storage">💾 Save</button>
+      <button id="btn-load" title="Load from storage">📂 Load</button>
+      <button id="btn-export" title="Export PNG">🖼 Export</button>
+      <button id="btn-clear" title="New / Clear">🧹 New</button>
+    </div>
+    <div class="sp"></div>
+    <div class="group">
+      <span class="tag">Vehicle color</span>
+      <input type="color" id="vehicleColor" value="#1f9cf0" title="Change selected vehicle color" />
+    </div>
+    <div class="group">
+      <button id="btn-share" title="Share scene via URL">🔗 Share</button>
+      <button id="btn-help" title="Help / Shortcuts">❓ Help</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="palette" id="palette">
+      <div class="row">
+        <div class="tag">Road tiles</div>
+        <div class="pill" data-type="tile" data-subtype="straight">Straight</div>
+        <div class="pill" data-type="tile" data-subtype="curve">Curve</div>
+        <div class="pill" data-type="tile" data-subtype="t">T‑junction</div>
+        <div class="pill" data-type="tile" data-subtype="cross">4‑way</div>
+        <div class="pill" data-type="tile" data-subtype="merge">Merge</div>
+        <div class="pill" data-type="tile" data-subtype="freeway">Freeway</div>
+        <div class="pill" data-type="tile" data-subtype="roundabout">Roundabout</div>
+        <div class="pill" data-type="tile" data-subtype="signals">Traffic lights</div>
+        <div class="pill" data-type="tile" data-subtype="stops">Stop signs</div>
+        <div class="pill" data-type="tile" data-subtype="crosswalk">Crosswalk</div>
+      </div>
+      <div class="row" style="margin-top:.25rem">
+        <div class="tag">Vehicles</div>
+        <div class="pill" data-type="vehicle" data-subtype="car"><span class="swatch" style="background:#1f9cf0"></span> Car</div>
+        <div class="pill" data-type="vehicle" data-subtype="suv"><span class="swatch" style="background:#10b981"></span> SUV</div>
+        <div class="pill" data-type="vehicle" data-subtype="truck"><span class="swatch" style="background:#f59e0b"></span> Truck</div>
+        <div class="pill" data-type="vehicle" data-subtype="semi"><span class="swatch" style="background:#ef4444"></span> Semi</div>
+        <div class="pill" data-type="label" data-subtype="text">📝 Label</div>
+        <div class="pill" data-type="label" data-subtype="arrow">➡️ Arrow</div>
+      </div>
+      <div class="row" style="margin-top:.25rem">
+        <div class="tag">Templates</div>
+        <button class="pill" data-template="4way">4‑Way + vehicles</button>
+        <button class="pill" data-template="tjunction">T‑Junction Yield</button>
+        <button class="pill" data-template="merge">Merge Lane</button>
+      </div>
+      <div class="row" style="margin-top:.25rem">
+        <span class="tag">Tips: Tap a pill to add to center. Tap item to select, then drag. Rotate with ⤾, duplicate with ⎘. Use Snap for neat alignment.</span>
+      </div>
+    </div>
+
+    <div id="stageWrap">
+      <svg id="stage" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#2a3045" stroke-width="1" />
+          </pattern>
+          <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L6,3 z" fill="#e8ebff" />
+          </marker>
+          <pattern id="laneDash" width="16" height="16" patternUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="16" height="16" fill="none" />
+            <rect x="0" y="7" width="8" height="2" fill="#dfe6ff" opacity="0.9" />
+          </pattern>
+        </defs>
+        <rect id="gridRect" x="0" y="0" width="100%" height="100%" fill="url(#grid)"/>
+        <g id="world"></g>
+        <g id="selectionLayer"></g>
+      </svg>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Saved</div>
+</div>
+
+<!-- Help Modal -->
+<dialog id="helpDialog">
+  <h3>Traffic Sketcher Help</h3>
+  <ul>
+    <li><b>Modes</b>: Select (V), Pan (H)</li>
+    <li><b>Actions</b>: Rotate (R), Duplicate (D), Delete (Del)</li>
+    <li><b>Undo/Redo</b>: Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z</li>
+    <li><b>Tips</b>: Use Snap for clean alignment. Use Share to copy a URL that encodes your scene.</li>
+  </ul>
+  <form method="dialog">
+    <button>Close</button>
+  </form>
+</dialog>
+
+<script type="module" src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js');
+    });
+  }
+</script>
+</body>
+</html>

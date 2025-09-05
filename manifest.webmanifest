@@ -1,0 +1,12 @@
+{
+  "name": "Traffic Sketcher",
+  "short_name": "Traffic",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0f1115",
+  "theme_color": "#0f1115",
+  "description": "Sketch simple traffic scenarios quickly and share as a URL.",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

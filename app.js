@@ -17,7 +17,7 @@
   const btnModeSelect = document.getElementById('mode-select');
   const btnModePan = document.getElementById('mode-pan');
   const btnModeDraw = document.getElementById('mode-draw');
-  const drawCanvas = document.getElementById('drawCanvas');
+  let drawCanvas = document.getElementById('drawCanvas');
   let drawCtx = null;
   let isDrawing = false;
 
@@ -36,7 +36,7 @@
       drawCanvas.style.display = 'block';
       drawCanvas.style.pointerEvents = 'auto';
       setupDrawCanvas();
-      console.log('Draw mode activated');
+      console.log('Draw mode activated, canvas display:', drawCanvas.style.display);
     } else {
       drawCanvas.style.display = 'none';
       drawCanvas.style.pointerEvents = 'none';
@@ -44,44 +44,42 @@
     }
   }
 
-  // Simple drawing functions
+  // Drawing event handlers
+  function handlePointerDown(e) {
+    if (mode !== 'draw') return;
+    isDrawing = true;
+    drawCanvas.setPointerCapture(e.pointerId);
+    const rect = drawCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    drawCtx.strokeStyle = '#ff0000';
+    drawCtx.lineWidth = 5;
+    drawCtx.lineCap = 'round';
+    drawCtx.beginPath();
+    drawCtx.moveTo(x, y);
+  }
+
+  function handlePointerMove(e) {
+    if (!isDrawing || mode !== 'draw') return;
+    const rect = drawCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    drawCtx.lineTo(x, y);
+    drawCtx.stroke();
+  }
+
+  function handlePointerUp(e) {
+    if (!isDrawing) return;
+    isDrawing = false;
+    drawCanvas.releasePointerCapture(e.pointerId);
+  }
+
+  // Function to set up the canvas dimensions
   function setupDrawCanvas() {
-    drawCtx = drawCanvas.getContext('2d');
     const stageWrap = document.getElementById('stageWrap');
     drawCanvas.width = stageWrap.offsetWidth;
     drawCanvas.height = stageWrap.offsetHeight;
-    
-    // Simple event listeners
-    drawCanvas.onmousedown = (e) => {
-      if (mode !== 'draw') return;
-      isDrawing = true;
-      const rect = drawCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      drawCtx.strokeStyle = '#ff0000';
-      drawCtx.lineWidth = 5;
-      drawCtx.lineCap = 'round';
-      drawCtx.beginPath();
-      drawCtx.moveTo(x, y);
-      console.log('Mouse down at:', x, y);
-    };
-    
-    drawCanvas.onmousemove = (e) => {
-      if (!isDrawing || mode !== 'draw') return;
-      const rect = drawCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      drawCtx.lineTo(x, y);
-      drawCtx.stroke();
-      console.log('Mouse move to:', x, y);
-    };
-    
-    drawCanvas.onmouseup = () => {
-      isDrawing = false;
-      console.log('Mouse up');
-    };
+    drawCtx = drawCanvas.getContext('2d');
   }
 
   // Camera (zoom/pan via viewBox)
@@ -92,9 +90,27 @@
     const ny = view.y + (cy - view.y) * (1 - 1/factor);
     view.x = nx; view.y = ny; view.w /= factor; view.h /= factor; applyView();
   }
-  document.getElementById('zoom-in').onclick = ()=> zoomAt(1.2, view.x+view.w/2, view.y+view.h/2);
-  document.getElementById('zoom-out').onclick= ()=> zoomAt(1/1.2, view.x+view.w/2, view.y+view.h/2);
-  document.getElementById('zoom-reset').onclick= ()=> {view={x:0,y:0,w:1200,h:800}; applyView();}
+  // Use pointer events for zoom buttons (works on both desktop and mobile)
+  document.getElementById('zoom-in').addEventListener('pointerdown', (e)=> {
+    e.preventDefault();
+    e.stopPropagation();
+    zoomAt(1.2, view.x+view.w/2, view.y+view.h/2);
+    console.log('Zoom in clicked');
+  });
+  document.getElementById('zoom-out').addEventListener('pointerdown', (e)=> {
+    e.preventDefault();
+    e.stopPropagation();
+    zoomAt(1/1.2, view.x+view.w/2, view.y+view.h/2);
+    console.log('Zoom out clicked');
+  });
+  document.getElementById('zoom-reset').addEventListener('pointerdown', (e)=> {
+    e.preventDefault();
+    e.stopPropagation();
+    view={x:0,y:0,w:1200,h:800}; 
+    applyView();
+    console.log('Zoom reset clicked');
+  });
+
 
   // Utilities
   const GRID=40;
@@ -136,7 +152,7 @@
         data=[]; 
         redraw(); 
         selected=null; 
-        console.log('Canvas cleared'); // Debug log
+        console.log('Traffic Sketcher loaded - VERSION 2.0 - JS IS UPDATING!'); // Debug log
       } 
     };
   } else {
@@ -348,7 +364,6 @@
       g.append(svgEl('rect',{x:-2, y:-120, width:4, height:240, fill:'#fbbf24'}));
       g.append(svgEl('rect',{x:-120, y:-2, width:240, height:4, fill:'#fbbf24'}));
     }
-    g.addEventListener('pointerdown', startDrag);
     return g;
   }
 
@@ -361,7 +376,6 @@
     const body = svgEl('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:r,fill:it.color||'#1f9cf0', stroke:'#0a0a0a', 'stroke-width':'2'});
     const win = svgEl('rect',{x:-w/4,y:-h/4,width:w/2,height:h/2,rx:4, fill:'#e0f2ff', opacity:.8});
     g.append(body, win);
-    g.addEventListener('pointerdown', startDrag);
     return g;
   }
 
@@ -371,8 +385,8 @@
     const t = svgEl('text',{x:0, y:0, 'text-anchor':'middle', 'dominant-baseline':'middle', fill:'#e8ebff', 'font-size':'14'});
     t.textContent = it.text || 'Note';
     g.append(bg, t);
-    g.addEventListener('pointerdown', startDrag);
-    g.addEventListener('dblclick', ()=>{
+    g.addEventListener('dblclick', (e)=>{
+      e.stopPropagation();
       const v = prompt('Edit label', it.text||''); if(v!=null){ pushHistory(); it.text = v; redraw(); }
     });
     return g;
@@ -414,7 +428,6 @@
       g.append(pole, box, red, yellow, green);
     }
     
-    g.addEventListener('pointerdown', startDrag);
     return g;
   }
 
@@ -422,7 +435,6 @@
     const g = svgEl('g', {'data-id':it.id, 'data-kind':'arrow'});
     const line = svgEl('line',{x1:it.x1, y1:it.y1, x2:it.x2, y2:it.y2, stroke:'#f59e0b', 'stroke-width':'4', 'marker-end':'url(#arrowHead)'});
     g.appendChild(line);
-    g.addEventListener('pointerdown', startDrag);
     return g;
   }
 
@@ -450,69 +462,57 @@
     selectionLayer.append(outerRect, rect);
   }
 
-  // Hit & drag
-  let dragging = null; // {id, kind, offsetX, offsetY} or arrow handle
-  function startDrag(e){
-    const pt = getSVGPoint(e);
-    const target = e.currentTarget; // g
-    const id = target.getAttribute('data-id');
-    const kind = target.getAttribute('data-kind');
-    // set hover/selected classes
-    world.querySelectorAll('g.hovered').forEach(el=>el.classList.remove('hovered'));
-    target.classList.add('hovered');
-    selectById(id);
-    if(mode==='select'){
-      e.preventDefault(); stage.setPointerCapture?.(e.pointerId);
-      const it = data.find(d=>d.id===id);
-      if(!it){ return; }
-      if(it.kind==='arrow'){
-        // dragging entire arrow equally
-        dragging = {type:'arrow-move', id, startX:pt.x, startY:pt.y, ox1:it.x1, oy1:it.y1, ox2:it.x2, oy2:it.y2};
-      } else {
-        dragging = {type:'move', id, dx:pt.x - (it.x||0), dy:pt.y - (it.y||0)};
-      }
-    } else if(mode==='pan'){
-      dragging = {type:'pan', sx:pt.x, sy:pt.y, vx:view.x, vy:view.y};
-    }
-  }
 
-  stage.addEventListener('pointermove', (e)=>{
-    if(!dragging) return; const pt = getSVGPoint(e);
-    if(dragging.type==='move'){
-      const it = data.find(d=>d.id===dragging.id); if(!it) return;
-      it.x = snap(pt.x - dragging.dx); it.y = snap(pt.y - dragging.dy); redraw();
+
+
+  let dragging = null;
+
+  world.addEventListener('pointerdown', (e) => {
+    if (mode === 'draw') return;
+    const target = e.target.closest('g[data-id]');
+    if (!target) {
+      if (mode === 'select') {
+        selectById(null); // Deselect
+      }
+      return;
     }
-    if(dragging.type==='pan'){
-      const dx = pt.x - dragging.sx; const dy = pt.y - dragging.sy;
-      view.x = dragging.vx - dx; view.y = dragging.vy - dy; applyView();
-    }
-    if(dragging.type==='arrow-move'){
-      const it = data.find(d=>d.id===dragging.id); if(!it) return;
-      const dx = pt.x - dragging.startX; const dy = pt.y - dragging.startY;
-      it.x1 = snap(dragging.ox1 + dx); it.y1 = snap(dragging.oy1 + dy);
-      it.x2 = snap(dragging.ox2 + dx); it.y2 = snap(dragging.oy2 + dy);
-      redraw();
+
+    const id = target.getAttribute('data-id');
+    selectById(id);
+
+    if (mode === 'select') {
+      const it = data.find(d => d.id === id);
+      if (!it) return;
+      const pt = getSVGPoint(e);
+      dragging = { type: 'move', id, item: it, dx: pt.x - (it.x || 0), dy: pt.y - (it.y || 0) };
     }
   });
-  stage.addEventListener('pointerup', (e)=>{ if(dragging){ pushHistory(); dragging=null; }});
-  stage.addEventListener('pointerleave', ()=>{ if(dragging){ pushHistory(); dragging=null; }});
 
-  // Click/drag on background
-  stage.addEventListener('pointerdown', (e)=>{
-    if(e.target===stage || e.target===document.getElementById('gridRect')){ 
+  stage.addEventListener('pointerdown', (e) => {
+    if (mode === 'pan' && (e.target === stage || e.target.id === 'gridRect')) {
       const pt = getSVGPoint(e);
-      
-      if(mode === 'select') {
-        // Clear selection and remove selected class from all elements
-        world.querySelectorAll('g.selected').forEach(el=>el.classList.remove('selected'));
-        selected=null; 
-        drawSelection();
-      } else if(mode === 'pan') {
-        // Start pan drag on blank space
-        e.preventDefault();
-        stage.setPointerCapture?.(e.pointerId);
-        dragging = {type:'pan', sx:pt.x, sy:pt.y, vx:view.x, vy:view.y};
-      }
+      dragging = { type: 'pan', sx: pt.x, sy: pt.y, vx: view.x, vy: view.y };
+    }
+  });
+
+  stage.addEventListener('pointermove', (e) => {
+    if (!dragging || mode === 'draw') return;
+    const pt = getSVGPoint(e);
+    if (dragging.type === 'move') {
+      dragging.item.x = snap(pt.x - dragging.dx);
+      dragging.item.y = snap(pt.y - dragging.dy);
+      redraw();
+    } else if (dragging.type === 'pan') {
+      view.x = dragging.vx - (pt.x - dragging.sx);
+      view.y = dragging.vy - (pt.y - dragging.sy);
+      applyView();
+    }
+  });
+
+  stage.addEventListener('pointerup', () => {
+    if (dragging) {
+      pushHistory();
+      dragging = null;
     }
   });
 
@@ -708,4 +708,17 @@
       document.getElementById('tab-actions').classList.toggle('hide', name!=='actions');
     })
   })
+
+
+  // Attach drawing listeners once
+  drawCanvas.addEventListener('pointerdown', handlePointerDown);
+  drawCanvas.addEventListener('pointermove', handlePointerMove);
+  drawCanvas.addEventListener('pointerup', handlePointerUp);
+  drawCanvas.addEventListener('pointercancel', handlePointerUp);
+
+  // Initialize after all variables are declared
+  console.log('Traffic Sketcher loaded - VERSION 2.0 - JS IS UPDATING!');
+  setMode('select');
+  applyView();
+  redraw();
 })();

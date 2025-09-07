@@ -61,3 +61,8 @@ dialog::backdrop{background: rgba(0,0,0,.5)}
 /* Selection/hover visual hooks (filters defined in SVG) */
 g.hovered { filter: url(#hoverglow); }
 g.selected { filter: url(#selglow); }
+
+/* Fix for mobile drawing: disable default touch actions on the canvas */
+#drawCanvas {
+  touch-action: none;
+}

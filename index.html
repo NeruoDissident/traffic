@@ -12,76 +12,100 @@
 <body>
 <div class="app">
   <div class="toolbar">
+    <button id="btn-drawer" class="btn" title="Toggle menu">☰ Menu</button>
     <div class="title">🚗 Traffic Sketcher</div>
-    <div class="group" role="group" aria-label="modes">
+    <div class="group" role="group" aria-label="modes" style="margin-left:auto">
       <button id="mode-select" class="active" title="Select / Move (V)">Select</button>
       <button id="mode-pan" title="Pan (H)">Pan</button>
-    </div>
-    <div class="group">
-      <button id="btn-undo" title="Undo (Ctrl/Cmd+Z)">↶ Undo</button>
-      <button id="btn-redo" title="Redo (Ctrl/Cmd+Shift+Z)">↷ Redo</button>
-    </div>
-    <div class="group">
-      <button id="btn-rotate" title="Rotate 90° (R)">⤾ Rotate</button>
-      <button id="btn-dup" title="Duplicate (D)">⎘ Duplicate</button>
-      <button id="btn-delete" title="Delete (Del)">🗑 Delete</button>
-    </div>
-    <div class="group">
-      <label class="btn"><input type="checkbox" id="snap" checked> Snap</label>
-      <label class="btn"><input type="checkbox" id="gridToggle" checked> Grid</label>
-      <button id="zoom-in" title="Zoom in">＋</button>
-      <button id="zoom-out" title="Zoom out">－</button>
-      <button id="zoom-reset" title="Reset zoom">⤢</button>
-    </div>
-    <div class="group">
-      <button id="btn-save" title="Save to device storage">💾 Save</button>
-      <button id="btn-load" title="Load from storage">📂 Load</button>
-      <button id="btn-export" title="Export PNG">🖼 Export</button>
-      <button id="btn-clear" title="New / Clear">🧹 New</button>
-    </div>
-    <div class="sp"></div>
-    <div class="group">
-      <span class="tag">Vehicle color</span>
-      <input type="color" id="vehicleColor" value="#1f9cf0" title="Change selected vehicle color" />
-    </div>
-    <div class="group">
-      <button id="btn-share" title="Share scene via URL">🔗 Share</button>
-      <button id="btn-help" title="Help / Shortcuts">❓ Help</button>
+      <button id="mode-draw" title="Free Draw (F)">Draw</button>
     </div>
   </div>
 
   <div class="main">
-    <div class="palette" id="palette">
-      <div class="row">
-        <div class="tag">Road tiles</div>
-        <div class="pill" data-type="tile" data-subtype="straight">Straight</div>
-        <div class="pill" data-type="tile" data-subtype="curve">Curve</div>
-        <div class="pill" data-type="tile" data-subtype="t">T‑junction</div>
-        <div class="pill" data-type="tile" data-subtype="cross">4‑way</div>
-        <div class="pill" data-type="tile" data-subtype="merge">Merge</div>
-        <div class="pill" data-type="tile" data-subtype="freeway">Freeway</div>
-        <div class="pill" data-type="tile" data-subtype="roundabout">Roundabout</div>
-        <div class="pill" data-type="tile" data-subtype="signals">Traffic lights</div>
-        <div class="pill" data-type="tile" data-subtype="stops">Stop signs</div>
-        <div class="pill" data-type="tile" data-subtype="crosswalk">Crosswalk</div>
+    <div id="drawer" class="drawer" data-open="true">
+      <div class="tabs" role="tablist" aria-label="Menu tabs">
+        <button class="tab active" data-tab="tiles" role="tab" aria-selected="true">Tiles</button>
+        <button class="tab" data-tab="vehicles" role="tab">Vehicles & Labels</button>
+        <button class="tab" data-tab="templates" role="tab">Templates</button>
+        <button class="tab" data-tab="actions" role="tab">Actions</button>
       </div>
-      <div class="row" style="margin-top:.25rem">
-        <div class="tag">Vehicles</div>
-        <div class="pill" data-type="vehicle" data-subtype="car"><span class="swatch" style="background:#1f9cf0"></span> Car</div>
-        <div class="pill" data-type="vehicle" data-subtype="suv"><span class="swatch" style="background:#10b981"></span> SUV</div>
-        <div class="pill" data-type="vehicle" data-subtype="truck"><span class="swatch" style="background:#f59e0b"></span> Truck</div>
-        <div class="pill" data-type="vehicle" data-subtype="semi"><span class="swatch" style="background:#ef4444"></span> Semi</div>
-        <div class="pill" data-type="label" data-subtype="text">📝 Label</div>
-        <div class="pill" data-type="label" data-subtype="arrow">➡️ Arrow</div>
-      </div>
-      <div class="row" style="margin-top:.25rem">
-        <div class="tag">Templates</div>
-        <button class="pill" data-template="4way">4‑Way + vehicles</button>
-        <button class="pill" data-template="tjunction">T‑Junction Yield</button>
-        <button class="pill" data-template="merge">Merge Lane</button>
-      </div>
-      <div class="row" style="margin-top:.25rem">
-        <span class="tag">Tips: Tap a pill to add to center. Tap item to select, then drag. Rotate with ⤾, duplicate with ⎘. Use Snap for neat alignment.</span>
+      <div class="tab-panels" id="palette">
+        <div class="tab-panel" id="tab-tiles">
+          <div class="row">
+            <div class="pill" data-type="tile" data-subtype="straight">Straight</div>
+            <div class="pill" data-type="tile" data-subtype="curve">Curve</div>
+            <div class="pill" data-type="tile" data-subtype="two-way-straight">Two-way straight</div>
+            <div class="pill" data-type="tile" data-subtype="two-way-curve">Two-way curve</div>
+            <div class="pill" data-type="tile" data-subtype="two-way-cross">Two-way cross</div>
+            <div class="pill" data-type="tile" data-subtype="t">T‑junction</div>
+            <div class="pill" data-type="tile" data-subtype="cross">4‑way</div>
+            <div class="pill" data-type="tile" data-subtype="merge">Merge</div>
+            <div class="pill" data-type="tile" data-subtype="freeway">Freeway</div>
+            <div class="pill" data-type="tile" data-subtype="multilane-signals">Multi-lane lights</div>
+            <div class="pill" data-type="tile" data-subtype="multilane-4way">Multi-lane 4-way</div>
+            <div class="pill" data-type="tile" data-subtype="roundabout">Roundabout</div>
+            <div class="pill" data-type="tile" data-subtype="signals">Traffic lights</div>
+            <div class="pill" data-type="tile" data-subtype="stops">Stop signs</div>
+            <div class="pill" data-type="tile" data-subtype="crosswalk">Crosswalk</div>
+          </div>
+        </div>
+        <div class="tab-panel hide" id="tab-vehicles">
+          <div class="row">
+            <div class="pill" data-type="vehicle" data-subtype="car"><span class="swatch" style="background:#1f9cf0"></span> Car</div>
+            <div class="pill" data-type="vehicle" data-subtype="suv"><span class="swatch" style="background:#10b981"></span> SUV</div>
+            <div class="pill" data-type="vehicle" data-subtype="truck"><span class="swatch" style="background:#f59e0b"></span> Truck</div>
+            <div class="pill" data-type="vehicle" data-subtype="semi"><span class="swatch" style="background:#ef4444"></span> Semi</div>
+          </div>
+          <div class="row">
+            <div class="pill" data-type="sign" data-subtype="stop">🛑 Stop Sign</div>
+            <div class="pill" data-type="sign" data-subtype="traffic-light">🚦 Traffic Light</div>
+          </div>
+          <div class="row">
+            <div class="pill" data-type="label" data-subtype="text">📝 Text</div>
+            <div class="pill" data-type="label" data-subtype="arrow">↗ Arrow</div>
+          </div>
+        </div>
+        <div class="tab-panel hide" id="tab-templates">
+          <div class="row">
+            <button class="pill" data-template="4way">4‑Way + vehicles</button>
+            <button class="pill" data-template="tjunction">T‑Junction Yield</button>
+            <button class="pill" data-template="merge">Merge Lane</button>
+          </div>
+        </div>
+        <div class="tab-panel hide" id="tab-actions">
+          <div class="row">
+            <div class="group">
+              <button id="btn-undo" title="Undo (Ctrl/Cmd+Z)">↶ Undo</button>
+              <button id="btn-redo" title="Redo (Ctrl/Cmd+Shift+Z)">↷ Redo</button>
+            </div>
+            <div class="group">
+              <button id="btn-rotate" title="Rotate 90° (R)">⤾ Rotate</button>
+              <button id="btn-dup" title="Duplicate (D)">⎘ Duplicate</button>
+              <button id="btn-delete" title="Delete (Del)">🗑 Delete</button>
+            </div>
+            <div class="group">
+              <label class="btn"><input type="checkbox" id="snap" checked> Snap</label>
+              <label class="btn"><input type="checkbox" id="gridToggle" checked> Grid</label>
+              <button id="zoom-in" title="Zoom in">＋</button>
+              <button id="zoom-out" title="Zoom out">－</button>
+              <button id="zoom-reset" title="Reset zoom">⤢</button>
+            </div>
+            <div class="group">
+              <button id="btn-save" title="Save to device storage">💾 Save</button>
+              <button id="btn-load" title="Load from storage">📂 Load</button>
+              <button id="btn-export" title="Export PNG">🖼 Export</button>
+              <button id="btn-clear" title="New / Clear">🧹 New</button>
+            </div>
+            <div class="group">
+              <span class="tag">Vehicle color</span>
+              <input type="color" id="vehicleColor" value="#1f9cf0" title="Change selected vehicle color" />
+            </div>
+            <div class="group">
+              <button id="btn-share" title="Share scene via URL">🔗 Share</button>
+              <button id="btn-help" title="Help / Shortcuts">❓ Help</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -98,11 +122,21 @@
             <rect x="0" y="0" width="16" height="16" fill="none" />
             <rect x="0" y="7" width="8" height="2" fill="#dfe6ff" opacity="0.9" />
           </pattern>
+          <!-- Glow filters for hover/selection -->
+          <filter id="hoverglow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#6ee7ff" flood-opacity="0.7"/>
+          </filter>
+          <filter id="selglow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#a78bfa" flood-opacity="1"/>
+            <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#6ee7ff" flood-opacity="0.6"/>
+          </filter>
         </defs>
-        <rect id="gridRect" x="0" y="0" width="100%" height="100%" fill="url(#grid)"/>
+        <rect id="gridRect" x="-10000" y="-10000" width="20000" height="20000" fill="url(#grid)"/>
         <g id="world"></g>
         <g id="selectionLayer"></g>
       </svg>
+      <!-- Drawing canvas - hidden by default, no pointer events when hidden -->
+      <canvas id="drawCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;display:none;pointer-events:none;z-index:10;"></canvas>
     </div>
   </div>
 

@@ -5,16 +5,16 @@
 html,body{height:100%; margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; color:var(--text); background:var(--bg);}    
 .app{display:flex; flex-direction:column; height:100%;}
 .toolbar{display:flex; gap:.5rem; align-items:center; padding:.5rem; background:var(--panel); border-bottom:1px solid var(--muted); position:sticky; top:0; z-index:5;}
-.toolbar button, .toolbar .btn{appearance:none; border:1px solid var(--muted); background:#111420; color:var(--text); padding:.45rem .6rem; border-radius:.7rem; font-size:.9rem; display:inline-flex; align-items:center; gap:.4rem}
+.toolbar button, .toolbar .btn{appearance:none; border:1px solid var(--muted); background:#111420; color:var(--text); padding:.6rem .8rem; border-radius:.7rem; font-size:.9rem; display:inline-flex; align-items:center; gap:.4rem; min-height:44px; touch-action:manipulation; cursor:pointer;}
 .toolbar button.active{outline:2px solid var(--accent2)}
 .toolbar .group{display:flex; gap:.4rem; background:#0e1220; padding:.25rem; border:1px solid var(--muted); border-radius:.8rem}
 .toolbar .sp{flex:1}
 .toolbar input[type="color"]{width:2rem; height:2rem; border:none; background:none}
-.main{flex:1; display:grid; grid-template-columns: 1fr; grid-template-rows: 1fr auto;}
-#stageWrap{position:relative; background:#0b0d14}
+.main{flex:1; position:relative;}
+#stageWrap{position:absolute; inset:0; background:#0b0d14}
 #stage{width:100%; height:100%; touch-action:none; display:block}
 .palette{display:flex; gap:.5rem; overflow:auto; padding:.5rem; background:var(--panel); border-top:1px solid var(--muted)}
-.pill{min-width:max-content; border:1px dashed var(--muted); background:#0e1322; padding:.4rem .6rem; border-radius:999px; font-size:.9rem; user-select:none}
+.pill{min-width:max-content; border:1px dashed var(--muted); background:#0e1322; padding:.6rem .8rem; border-radius:999px; font-size:.95rem; user-select:none; touch-action:manipulation; min-height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
 .pill[data-type="tile"]{border-style:solid}
 .pill .swatch{width:1rem; height:1rem; border-radius:4px; border:1px solid #0006; display:inline-block}
 .tag{font-size:.7rem; color:var(--sub)}
@@ -29,3 +29,35 @@ html,body{height:100%; margin:0; font-family:system-ui,-apple-system,Segoe UI,Ro
 /* dialog */
 dialog{border:1px solid var(--muted); background:#0e1322; color:var(--text); border-radius:10px; padding:1rem; max-width: 500px}
 dialog::backdrop{background: rgba(0,0,0,.5)}
+
+/* Drawer layout */
+.drawer{position:absolute; background:var(--panel); border-top:1px solid var(--muted); border-right:1px solid var(--muted); display:flex; flex-direction:column; transition:transform .2s ease; z-index:4; touch-action:pan-y; overflow:hidden;}
+.drawer .tabs{display:flex; gap:.25rem; padding:.4rem; border-bottom:1px solid var(--muted); background:#0f1322; position:sticky; top:0}
+.drawer .tab{appearance:none; border:1px solid var(--muted); background:#0d1220; color:var(--text); padding:.5rem .8rem; border-radius:.5rem; font-size:.9rem; min-height:44px; touch-action:manipulation; cursor:pointer;}
+.drawer .tab.active{outline:2px solid var(--accent2)}
+.drawer .tab-panels{padding:.5rem; overflow:auto; flex:1; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;}
+.drawer .row{display:flex; flex-wrap:wrap; gap:.5rem}
+
+/* Mobile-friendly hover states */
+.pill:hover, .pill:focus {
+  background: #1a1f35;
+  border-color: var(--accent2);
+}
+
+.drawer .tab:hover, .drawer .tab:focus {
+  background: #151a2a;
+}
+
+/* Responsive sizing: smaller, non-intrusive drawer */
+@media (orientation: portrait){
+  .drawer{left:0; right:0; bottom:0; height:35vh; max-height:400px; transform:translateY(0)}
+  .drawer[data-open="false"]{transform:translateY(100%)}
+}
+@media (orientation: landscape){
+  .drawer{top:0; bottom:0; left:0; width:320px; max-width:35vw; transform:translateX(0)}
+  .drawer[data-open="false"]{transform:translateX(-100%)}
+}
+
+/* Selection/hover visual hooks (filters defined in SVG) */
+g.hovered { filter: url(#hoverglow); }
+g.selected { filter: url(#selglow); }
